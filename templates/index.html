@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Negotiation Platform - Intelligent Multi-Agent Trading</title>
+    <meta name="description" content="Advanced AI-powered negotiation platform with intelligent multi-agent trading simulation">
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzYzNjZmMSIvPgo8cGF0aCBkPSJNOCAxNkwxNiA4TDI0IDE2TDE2IDI0TDggMTZaIiBmaWxsPSJ3aGl0ZSIvPgo8L3N2Zz4K">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Negotiation Platform</h1>
+            <p class="subtitle">Intelligent Multi-Agent Trading Simulation</p>
+        </header>
+        
+        <main>
+            <section class="negotiation-form" aria-labelledby="form-heading">
+                <h2 id="form-heading">⚡ Start Automatic Negotiation</h2>
+                <p class="form-description">Configure your negotiation parameters and watch our AI agents negotiate in real-time</p>
+                
+                <form id="negotiationForm" novalidate>
+                    <div class="form-group">
+                        <label for="item">📦 Item Description</label>
+                        <input 
+                            type="text" 
+                            id="item" 
+                            required 
+                            placeholder="e.g., 2020 Honda Civic, iPhone 14 Pro, Vintage Guitar"
+                            autocomplete="off"
+                            aria-describedby="item-help"
+                        >
+                        <small id="item-help" class="help-text">Describe the item you want to negotiate for</small>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="buyerMax">💰 Buyer's Maximum Price</label>
+                            <input 
+                                type="number" 
+                                id="buyerMax" 
+                                step="0.01" 
+                                min="0"
+                                required 
+                                placeholder="18000.00"
+                                aria-describedby="buyer-help"
+                            >
+                            <small id="buyer-help" class="help-text">Highest amount the buyer is willing to pay</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="sellerMin">🏷️ Seller's Minimum Price</label>
+                            <input 
+                                type="number" 
+                                id="sellerMin" 
+                                step="0.01" 
+                                min="0"
+                                required 
+                                placeholder="16500.00"
+                                aria-describedby="seller-help"
+                            >
+                            <small id="seller-help" class="help-text">Lowest amount the seller will accept</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" id="startBtn" class="primary-btn">
+                            <span class="btn-icon">🚀</span>
+                            <span class="btn-text">Start Automatic Negotiation</span>
+                        </button>
+                    </div>
+                </form>
+            </section>
+            
+            <section id="negotiationResults" class="hidden" aria-labelledby="results-heading">
+                <h2 id="results-heading">📊 Negotiation Results</h2>
+                <div id="negotiationStatus" aria-live="polite"></div>
+                <div id="negotiationSummary"></div>
+                <div id="negotiationRounds"></div>
+                <div id="negotiationAnalysis"></div>
+                <div class="actions-center">
+                    <button id="downloadPdfBtn" class="secondary-btn hidden">
+                        <span class="btn-icon">📄</span>
+                        <span class="btn-text">Download PDF Report</span>
+                    </button>
+                </div>
+            </section>
+            
+            <section class="history" aria-labelledby="history-heading">
+                <h2 id="history-heading">📜 Past Negotiations</h2>
+                {% if history %}
+                <div class="table-container">
+                    <table role="table" aria-label="Negotiation history">
+                        <thead>
+                            <tr>
+                                <th scope="col">Item</th>
+                                <th scope="col">Buyer Max</th>
+                                <th scope="col">Seller Min</th>
+                                <th scope="col">Final Price</th>
+                                <th scope="col">Time</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for deal in history %}
+                            <tr>
+                                <td data-label="Item">
+                                    <strong>{{ deal.item }}</strong>
+                                </td>
+                                <td data-label="Buyer Max">
+                                    <span class="price-cell">${{ "%.2f"|format(deal.buyer_max) }}</span>
+                                </td>
+                                <td data-label="Seller Min">
+                                    <span class="price-cell">${{ "%.2f"|format(deal.seller_min) }}</span>
+                                </td>
+                                <td data-label="Final Price">
+                                    {% if deal.final_price %}
+                                        <span class="price-cell success">${{ "%.2f"|format(deal.final_price) }}</span>
+                                    {% else %}
+                                        <span class="status-badge failed">No deal</span>
+                                    {% endif %}
+                                </td>
+                                <td data-label="Time">
+                                    <time datetime="{{ deal.timestamp }}">
+                                        {% if deal.timestamp %}
+                                            {% if deal.timestamp.strftime is defined %}
+                                                {{ deal.timestamp.strftime('%m/%d %H:%M') }}
+                                            {% else %}
+                                                {{ deal.timestamp }}
+                                            {% endif %}
+                                        {% else %}
+                                            N/A
+                                        {% endif %}
+                                    </time>
+                                </td>
+                                <td data-label="Status">
+                                    {% if deal.final_price %}
+                                        <span class="status-badge success">✅ Success</span>
+                                    {% else %}
+                                        <span class="status-badge failed">❌ Failed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">📋</div>
+                    <h3>No negotiations yet</h3>
+                    <p>Start your first negotiation above to see the history here.</p>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+        
+        <footer>
+            <p>&copy; 2025 AI Negotiation Platform. Powered by advanced machine learning algorithms.</p>
+        </footer>
+    </div>
+    
+    <script src="/static/script.js"></script>
+</body>
+</html>
